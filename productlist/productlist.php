@@ -261,7 +261,13 @@
 
                     <!-- Page Heading -->
                     <h1 class="h3 mb-4 text-gray-800">All Product</h1>
+                    <?php
+                    
 
+                    if(isset($_GET['delete']) && $_GET['delete'] !== null){
+                        echo "Delete Successful";
+                    }
+                    ?>
                     <table class="table table-sm">
                         <thead>
                             <tr>
