@@ -1,33 +1,9 @@
 <?php
-
     include '../config.php';
-
-
-    if(isset($_POST['submit'])){
-        $product = $_POST['product'];
-        $vendor = $_POST['vendor'];
-        $quantity = $_POST['quantity'];
-        $purchase = $_POST['purchase'];
-        $sale = $_POST['sale'];
-        $image = $_FILES['image'];
-
-        
-        $image_name = $image['name'];
-        $image_tmp_name = $image['tmp_name'];
-        
-        if(!empty($image_name)){
-            $img_path = "../productlist/img/$image_name";
-            move_uploaded_file($image_tmp_name, $img_path);
-        }
-        if($image_name == NULL){
-            $image_name = "product.jpg";
-        }
-        $create = "INSERT INTO product_info (image, product, vendor, quantity, purchase, sale) VALUES ('$image_name','$product','$vendor','$quantity','$purchase','$sale')";
-        $create_push = mysqli_query($connection, $create);
-        header("location: http://localhost/myshop/productlist/productlist.php");
-   
-    }
+    $post = json_decode(file_get_contents('https://jsonplaceholder.typicode.com/posts/'.$_GET['id']));
+    $comments = json_decode(file_get_contents('https://jsonplaceholder.typicode.com/posts/'.$_GET['id'].'/comments'));
     
+
 ?>
 
 <!DOCTYPE html>
@@ -277,44 +253,45 @@
                 <div class="container-fluid">
 
                     <!-- Page Heading -->
-                    <h1 class="h3 mb-4 text-gray-800">Create Product</h1>
-                    
+                    <h1 class="h3 mb-4 text-gray-800">Post Details</h1>
+                    <div style="padding:30px 0;">
+                        <h2 style="text-transform: capitalize;"><b><?php echo $post->title ?></b></h2>
+                        <p><?php echo $post->body ?></p>
 
-                    <form method="POST" action="" enctype="multipart/form-data">
-                        <div class="form-group">
-                            <label for="product">Product Name</label>
-                            <input type="text" name="product" class="form-control" id="product" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="vendor">Vendor Name</label>
-                            <input type="text" name="vendor" class="form-control" id="vendor" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="quantity">Quantity</label>
-                            <input type="number" name="quantity" class="form-control" id="quantity" required>
+                    <?php
+                        foreach($comments as $kkk => $vvv){
+                            ?>
+                        <div style="margin-bottom:15px; border:1px solid #ccc; padding:10px; color: #222">
+                            <div><b>Name:</b> <?php echo $vvv->name?></div>
+                            <div><b>Email:</b> <?php echo $vvv->email?></div>
+                            <div><b>Comment:</b> <?php echo $vvv->body?></div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="purchase">Purchase Price</label>
-                            <input type="number" name="purchase" class="form-control" id="purchase" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="sale">Sale Price</label>
-                            <input type="number" name="sale" class="form-control" id="sale" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="image">Product Image</label>
-                            <input type="file" name="image" class="form-control" id="image">
-                        </div>
-                        <input type="submit" value="Submit" name="submit" class="btn btn-primary">
-                    </form>
+                            <?php
+                        }
+                    ?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </div>
+
 
                 </div>
                 <!-- /.container-fluid -->
 
             </div>
             <!-- End of Main Content -->
-
+            
             <!-- Footer -->
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">

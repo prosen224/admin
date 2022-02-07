@@ -1,16 +1,33 @@
 <?php
     include '../config.php';
-    $query = "SELECT `id`, `product`, `vendor`, `quantity`, `purchase`, `sale` FROM `product_info`";
-    $data = $conn->query($query);
+    
+    $totalrow = "SELECT * FROM product_info";
+    $totalrow_push = mysqli_query($connection, $totalrow);
+    $totalrow_count = mysqli_num_rows($totalrow_push);
 
-    $total_quantity = 0;
-    $total_purchase = 0;
-    $total_sale = 0;
+    $total_record = $totalrow_count;
+    $limit = 4;
+    if(isset($_GET['page'])){
+        $page = $_GET['page'];  
+    }else{
+        $page = 1;
+    }
+    $offset = ($page - 1) * $limit;
+
+    
 
 
-    $total_quantity_ = "SELECT SUM(quantity) AS total_quantity FROM product_info";
-    $prosen = $conn->query($total_quantity_);
-    $pro = $prosen->fetch_assoc();
+    if(isset($_POST['search'])){
+        $search_item = $_POST['search_item'];
+        $read = "SELECT * FROM `product_info` WHERE `product` LIKE '%$search_item%' OR `vendor` LIKE '%$search_item%'";
+    }else{
+        $read = "SELECT * FROM product_info LIMIT $limit OFFSET $offset";
+    }
+    $read_push = mysqli_query($connection, $read);
+    
+    
+    
+    
 ?>
 
 <!DOCTYPE html>
@@ -261,36 +278,68 @@
 
                     <!-- Page Heading -->
                     <h1 class="h3 mb-4 text-gray-800">All Product</h1>
-                    <?php
-                    
-
-                    if(isset($_GET['delete']) && $_GET['delete'] !== null){
-                        echo "Delete Successful";
-                    }
-                    ?>
+                    <form method="post">
+                        <div class="form-row align-items-center mb-3">
+                            <div class="col-auto my-1">
+                                <div class="mr-sm-2">
+                                    <input type="text" value="<?php if(isset($_POST['search'])){echo $search_item;}?>" name="search_item" class="form-control" id="vendor" placeholder="Search product...">
+                                </div>
+                            </div>
+                            <div class="col-auto my-1">
+                                <button type="submit"  name="search" class="btn btn-primary">Search</button>
+                            </div>
+                            <?php 
+                            if(isset($_POST['search'])){
+                                if($_POST['search_item'] != NULL){
+                                ?>
+                            
+                            <div class="col-auto my-1">
+                                <?php $count = mysqli_num_rows($read_push); print_r(@$count);?> of <?php  print_r($totalrow_count)?>
+                            </div>
+                            <?php
+                                }
+                            }
+                            ?>
+                        </div>
+                    </form>
+   
                     <table class="table table-sm">
                         <thead>
                             <tr>
-                                <th scope="col">ID</th>
+                                <th scope="col">Serial No.</th>
+                                <th scope="col">DB ID</th>
+                                <th scope="col">Product IMG</th>
                                 <th scope="col">Product Name</th>
                                 <th scope="col">Vendor Name</th>
                                 <th scope="col">Quantity</th>
                                 <th scope="col">Purchase Price</th>
                                 <th scope="col">Sale Price</th>
-                                <th scope="col">Update</th>
+                                <th colspan="2">Action</th>
                             </tr>
                         </thead>
-                       
-                        <tbody>
-                        <?php 
-                            if($data->num_rows > 0){
-                                while($row = $data->fetch_assoc()){
 
-                                    
-                        ?>
+                        <tbody>
+                        <?php
+                            $count = mysqli_num_rows($read_push);
+                            if($count > 0){
+
+                                $want_to_show = 4;
+                                $page_no = $page;                                 
+                                $a = ($page_no - 1) * $want_to_show;
+                                $b = $a + 1;
+
+                            while($row = mysqli_fetch_assoc($read_push)){
+
                                 
+                                
+
+                                
+                        ?>
+                                 
                             <tr>
-                                <th scope="row"><?php echo $row['id']; ?></th>
+                                <th scope="row"><?php echo $b++?></th>
+                                <td><?php echo $row['id']; ?></td>
+                                <td><img width="50" src="img/<?php echo $row['image']; ?>"></td>
                                 <td><?php echo $row['product']; ?></td>
                                 <td><?php echo $row['vendor']; ?></td>
                                 <td><?php echo $row['quantity']; ?></td>
@@ -298,38 +347,62 @@
                                 <td><?php echo $row['sale']; ?></td>
                                 <td>
                                     <button type="button" class="close" aria-label="Close">
-                                        <a href="http://localhost/myshop/productlist/productdelete.php?vendor=<?php echo $row['vendor']?>"><i class="fas fa-window-close"></i></a>
+                                    <a href="http://localhost/myshop/productlist/update.php?id=<?php echo $row['id']?>&page=<?php echo $page; ?>"><i class="fas fa-pen"></i></a>
+                                    </button>
+                                </td>
+                                <td>
+                                    <button type="button" class="close" aria-label="Close">
+                                        <a onclick ="return confirm('Are you sure')" href="http://localhost/myshop/productlist/productdelete.php?id=<?php echo $row['id']?>&image=<?php echo $row['image']?>"><i class="fas fa-window-close"></i></a>
                                     </button>
                                 </td>
                             </tr>
-                           
                         <?php
-                            $single_quantity = $row['quantity'];
-                            $total_quantity = $total_quantity + $single_quantity;
-
-                            $single_purchase = $row['purchase'];
-                            $total_purchase = $total_purchase + $single_purchase;
-
-                            $single_sale = $row['sale'];
-                            $total_sale = $total_sale + $single_sale;
-
-                                }
+                               }   
                             }
-                            
+                        
                         ?>
-                        <tr>
-                            <th scope="col">---</th>
-                            <th scope="col">---</th>
-                            <th scope="col">---</th>
-                            <th scope="col">Total: <?php echo $pro['total_quantity']; ?></th>
-                            <th scope="col">Total: <?php echo $total_purchase ?></th>
-                            <th scope="col">Total: <?php echo $total_sale ?></th>
-                            <th scope="col">---</th>
-                        </tr>
+                                           
+                        
 
                         </tbody>
+                        
                     </table>
+                    <nav>
+                        <ul class="pagination pagination-md justify-content-center">
+                            <?php
+                                $total_page = ceil($total_record/$limit);
+                                    for ($i=1; $i <= $total_page; $i++ ){
+                                        if($i == $page){
+                                            $active = "active";
+                                        }else{
+                                            $active = "";
+                                        }
+                                        if($totalrow_count > $limit){
+                            ?>
+                                <li class="page-item <?php echo $active?>"><a class="page-link" href="productlist.php?page=<?php echo $i;?>"><?php echo $i?></a></li>
+                            <?php
+                                       
+                                }
+                            }
+                            ?>
+                        </ul>       
+                    </nav>
+                    
+                    
                 </div>
+
+
+
+
+                <?php 
+                    if($count == 0){
+                ?>
+                    <h1 class="text-center">No result found</h1>
+                <?php
+                    }
+                ?>
+                
+
                 <!-- /.container-fluid -->
 
             </div>

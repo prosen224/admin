@@ -2,30 +2,44 @@
 
     include '../config.php';
 
+    if(isset($_REQUEST['id'])){
+        $rcv_id = $_REQUEST['id'];
+        $get_query = "SELECT * FROM product_info WHERE id = $rcv_id";
+        $get_action = mysqli_query($connection, $get_query);
+        $row = mysqli_fetch_assoc($get_action);
+        $old_image_name = $row['image'];
 
-    if(isset($_POST['submit'])){
-        $product = $_POST['product'];
-        $vendor = $_POST['vendor'];
-        $quantity = $_POST['quantity'];
-        $purchase = $_POST['purchase'];
-        $sale = $_POST['sale'];
-        $image = $_FILES['image'];
 
-        
-        $image_name = $image['name'];
-        $image_tmp_name = $image['tmp_name'];
-        
-        if(!empty($image_name)){
-            $img_path = "../productlist/img/$image_name";
-            move_uploaded_file($image_tmp_name, $img_path);
+        if(isset($_POST['submit'])){
+            $product = $_REQUEST['product'];
+            $vendor = $_REQUEST['vendor'];
+            $quantity = $_REQUEST['quantity'];
+            $purchase = $_REQUEST['purchase'];
+            $sale = $_REQUEST['sale'];
+            $image = $_FILES['image'];
+            $new_image_name = $image['name'];
+            $image_tmp_name = $image['tmp_name'];
+            
+            if(!empty($new_image_name)){
+                $img_path = "img/$new_image_name";
+                move_uploaded_file($image_tmp_name, $img_path);
+                unlink("img/$old_image_name");
+            }
+
+            if(empty($new_image_name)){
+                $current_image = $old_image_name;
+            }
+            else{
+                $current_image = $new_image_name;
+            }
+
+            $update_query = "UPDATE product_info SET `image`='$current_image', `product`='$product',`vendor`='$vendor',`quantity`='$quantity',`purchase`='$purchase',`sale`='$sale' WHERE id = $rcv_id";
+            $update_action = mysqli_query($connection, $update_query);
+            $page = $_GET['page'];
+            if($update_action){
+                header("location: http://localhost/myshop/productlist/productlist.php?page=$page");
+            }
         }
-        if($image_name == NULL){
-            $image_name = "product.jpg";
-        }
-        $create = "INSERT INTO product_info (image, product, vendor, quantity, purchase, sale) VALUES ('$image_name','$product','$vendor','$quantity','$purchase','$sale')";
-        $create_push = mysqli_query($connection, $create);
-        header("location: http://localhost/myshop/productlist/productlist.php");
-   
     }
     
 ?>
@@ -277,30 +291,36 @@
                 <div class="container-fluid">
 
                     <!-- Page Heading -->
-                    <h1 class="h3 mb-4 text-gray-800">Create Product</h1>
+                    <h1 class="h3 mb-4 text-gray-800">Update Product</h1>
                     
 
                     <form method="POST" action="" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="product">Product Name</label>
-                            <input type="text" name="product" class="form-control" id="product" required>
+                            <input type="text" name="product" class="form-control" id="product" value="<?php echo @$row['product']?>" required>
                         </div>
                         <div class="form-group">
                             <label for="vendor">Vendor Name</label>
-                            <input type="text" name="vendor" class="form-control" id="vendor" required>
+                            <input type="text" name="vendor" class="form-control" id="vendor" value="<?php echo @$row['vendor']?>" required>
                         </div>
                         <div class="form-group">
                             <label for="quantity">Quantity</label>
-                            <input type="number" name="quantity" class="form-control" id="quantity" required>
+                            <input type="number" name="quantity" class="form-control" id="quantity" value="<?php echo @$row['quantity']?>" required>
                         </div>
 
                         <div class="form-group">
                             <label for="purchase">Purchase Price</label>
-                            <input type="number" name="purchase" class="form-control" id="purchase" required>
+                            <input type="number" name="purchase" class="form-control" id="purchase" value="<?php echo @$row['purchase']?>" required>
                         </div>
                         <div class="form-group">
                             <label for="sale">Sale Price</label>
-                            <input type="number" name="sale" class="form-control" id="sale" required>
+                            <input type="number" name="sale" class="form-control" id="sale" value="<?php echo @$row['sale']?>" required>
+                        </div>
+                        <div  class="row mb-4">
+                            <div class="col-2">
+                                <p>Image</p>
+                                <img width ="100" src="img/<?php echo @$row['image']?>">
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="image">Product Image</label>
